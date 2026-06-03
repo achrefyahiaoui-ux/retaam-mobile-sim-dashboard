@@ -45,7 +45,7 @@ export function BarChartCard({ title, data, color, initialLimit = 15 }: Props) {
   const max = useMemo(() => (data[0]?.value ?? 0), [data]);
 
   return (
-    <div className="group relative overflow-hidden rounded-2xl bg-cream-50/95 shadow-card ring-1 ring-ink-900/5">
+    <div className="chart-card group relative overflow-hidden rounded-2xl bg-cream-50/95 shadow-card ring-1 ring-ink-900/5">
       <div className="flex items-start justify-between gap-3 px-5 pt-5">
         <div>
           <h3 className="text-base font-bold text-ink-900">{title}</h3>
@@ -58,7 +58,7 @@ export function BarChartCard({ title, data, color, initialLimit = 15 }: Props) {
           <button
             type="button"
             onClick={() => setExpanded((v) => !v)}
-            className="focus-ring rounded-full bg-ink-900/5 px-3 py-1 text-[11px] font-semibold text-ink-800 hover:bg-ink-900/10"
+            className="no-print focus-ring rounded-full bg-ink-900/5 px-3 py-1 text-[11px] font-semibold text-ink-800 hover:bg-ink-900/10"
           >
             {expanded ? "عرض الأعلى فقط" : "عرض الكل"}
           </button>
@@ -71,29 +71,33 @@ export function BarChartCard({ title, data, color, initialLimit = 15 }: Props) {
             لا توجد بيانات لعرضها
           </div>
         ) : (
-          <ResponsiveContainer width="100%" height={Math.max(260, shown.length * 28 + 40)}>
+          <ResponsiveContainer width="100%" height={Math.max(280, shown.length * 32 + 50)}>
             <BarChart
               data={chartData}
               layout="vertical"
-              margin={{ top: 8, right: 36, left: 8, bottom: 8 }}
-              barCategoryGap={6}
+              margin={{ top: 10, right: 64, left: 10, bottom: 16 }}
+              barCategoryGap={8}
             >
-              <CartesianGrid horizontal={false} stroke="rgba(15,21,53,0.06)" />
+              <CartesianGrid horizontal={false} stroke="rgba(15,21,53,0.08)" />
               <XAxis
                 type="number"
-                tick={{ fontSize: 11 }}
+                tick={{ fontSize: 13, fill: "#0F1535", fontWeight: 600, fontFamily: "var(--font-dm)" }}
                 tickFormatter={(v) => formatNum(v as number)}
-                axisLine={false}
-                tickLine={false}
+                axisLine={{ stroke: "rgba(15,21,53,0.20)" }}
+                tickLine={{ stroke: "rgba(15,21,53,0.20)" }}
+                tickMargin={6}
+                allowDecimals={false}
               />
               <YAxis
                 type="category"
                 dataKey="labelShort"
-                width={140}
-                tick={{ fontSize: 12, fill: "#1A2150" }}
-                axisLine={false}
+                width={170}
+                tick={{ fontSize: 14, fill: "#0F1535", fontWeight: 600, fontFamily: "var(--font-cairo)" }}
+                axisLine={{ stroke: "rgba(15,21,53,0.20)" }}
                 tickLine={false}
+                tickMargin={8}
                 orientation="right"
+                interval={0}
               />
               <Tooltip
                 cursor={{ fill: "rgba(15,21,53,0.04)" }}
@@ -103,7 +107,7 @@ export function BarChartCard({ title, data, color, initialLimit = 15 }: Props) {
                   background: "white",
                   boxShadow: "0 12px 32px -8px rgba(15,21,53,0.18)",
                   fontFamily: "var(--font-cairo)",
-                  fontSize: 12,
+                  fontSize: 13,
                 }}
                 formatter={(v: any) => [formatNum(Number(v)), "المجموع"]}
                 labelFormatter={(_, payload) =>
@@ -114,9 +118,10 @@ export function BarChartCard({ title, data, color, initialLimit = 15 }: Props) {
                 dataKey="value"
                 radius={[6, 6, 6, 6]}
                 label={{
-                  position: "insideRight",
-                  fill: "#FBF8F1",
-                  fontSize: 11,
+                  position: "right",
+                  fill: "#000000",
+                  fontSize: 13,
+                  fontWeight: 800,
                   fontFamily: "var(--font-dm)",
                   formatter: (v: any) => formatNum(Number(v)),
                 }}
@@ -125,7 +130,7 @@ export function BarChartCard({ title, data, color, initialLimit = 15 }: Props) {
                   <Cell
                     key={i}
                     fill={color}
-                    fillOpacity={0.55 + 0.45 * (d.value / (max || 1))}
+                    fillOpacity={0.6 + 0.4 * (d.value / (max || 1))}
                   />
                 ))}
               </Bar>

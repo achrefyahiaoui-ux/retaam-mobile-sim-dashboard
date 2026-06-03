@@ -38,7 +38,12 @@ function dateRangeText(records: SimRecord[]): string {
 function formatTime(iso?: string) {
   if (!iso) return "—";
   const d = new Date(iso);
-  return d.toLocaleTimeString("ar-EG", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+  return d.toLocaleTimeString("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  });
 }
 
 export default function DashboardPage() {
@@ -91,19 +96,32 @@ export default function DashboardPage() {
                 </div>
               </div>
             </div>
-            <div className="flex items-center gap-3 rounded-full bg-cream-50/80 px-3 py-1.5 text-[11px] text-ink-700 shadow-soft ring-1 ring-ink-900/5">
-              <span className={`h-2 w-2 rounded-full ${error ? "bg-red-500" : "bg-teal animate-pulse_dot"}`} />
-              <span>
-                {error ? "خطأ في الاتصال" : "اتصال مباشر"}
-                {" · "}
-                آخر تحديث: <span className="font-num" data-num>{formatTime(data?.fetchedAt)}</span>
-              </span>
+            <div className="flex items-center gap-2">
+              <div className="no-print flex items-center gap-3 rounded-full bg-cream-50/80 px-3 py-1.5 text-[11px] text-ink-700 shadow-soft ring-1 ring-ink-900/5">
+                <span className={`h-2 w-2 rounded-full ${error ? "bg-red-500" : "bg-teal animate-pulse_dot"}`} />
+                <span>
+                  {error ? "خطأ في الاتصال" : "اتصال مباشر"}
+                  {" · "}
+                  آخر تحديث: <span className="font-num" data-num>{formatTime(data?.fetchedAt)}</span>
+                </span>
+                <button
+                  type="button"
+                  onClick={() => mutate()}
+                  className="focus-ring rounded-full bg-ink-900/5 px-2.5 py-1 font-semibold text-ink-800 hover:bg-ink-900/10"
+                >
+                  تحديث
+                </button>
+              </div>
               <button
                 type="button"
-                onClick={() => mutate()}
-                className="focus-ring rounded-full bg-ink-900/5 px-2.5 py-1 font-semibold text-ink-800 hover:bg-ink-900/10"
+                onClick={() => window.print()}
+                className="no-print focus-ring inline-flex items-center gap-1.5 rounded-full bg-ink-900 px-3 py-2 text-[11px] font-bold text-cream-50 shadow-soft hover:bg-ink-800"
+                title="طباعة الصفحة كملف PDF"
               >
-                تحديث
+                <svg viewBox="0 0 20 20" fill="currentColor" className="h-3.5 w-3.5" aria-hidden>
+                  <path fillRule="evenodd" d="M5 4a2 2 0 012-2h6a2 2 0 012 2v3h1a2 2 0 012 2v5a2 2 0 01-2 2h-1v1a2 2 0 01-2 2H7a2 2 0 01-2-2v-1H4a2 2 0 01-2-2V9a2 2 0 012-2h1V4zm2 3h6V4H7v3zm0 6h6v3H7v-3zm-2-3a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
+                </svg>
+                طباعة PDF
               </button>
             </div>
           </header>
@@ -135,7 +153,7 @@ export default function DashboardPage() {
           </section>
 
           {/* Charts */}
-          <section className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+          <section className="print-grid-single grid grid-cols-1 gap-4 xl:grid-cols-2">
             {isLoading
               ? Array.from({ length: 6 }).map((_, i) => (
                   <Skeleton key={i} className="h-[320px]" />

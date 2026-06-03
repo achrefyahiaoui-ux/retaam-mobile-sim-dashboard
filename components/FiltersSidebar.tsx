@@ -4,6 +4,7 @@ import { CATEGORICAL_KEYS, FilterState, SimRecord } from "@/lib/types";
 import { uniqueValues } from "@/lib/aggregate";
 import { ARABIC_MONTHS, FILTER_LABELS, formatNum } from "@/lib/i18n";
 import { fromISODateInput, toISODateInput } from "@/lib/date";
+import { MultiSelectDropdown } from "@/components/ui/MultiSelectDropdown";
 
 type Props = {
   records: SimRecord[];
@@ -157,6 +158,12 @@ export function FiltersSidebar({ records, state, setState }: Props) {
     setState(next);
   };
 
+  const clearKey = (key: keyof FilterState) => {
+    const next = cloneState(state);
+    (next[key] as Set<any>).clear();
+    setState(next);
+  };
+
   const reset = () => {
     setState({
       "المدخل": new Set(), "المفعل": new Set(), "مشرف الفرع": new Set(),
@@ -217,11 +224,12 @@ export function FiltersSidebar({ records, state, setState }: Props) {
           {dates.length > 0 && (
             <div className="mt-3">
               <div className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-ink-500/80">أو حدد تواريخ</div>
-              <ChipGroup
+              <MultiSelectDropdown
                 items={dates}
                 selected={state["التاريخ"]}
                 onToggle={(v) => toggle("التاريخ", v)}
-                search
+                onClear={() => clearKey("التاريخ")}
+                placeholder="اختر تواريخ"
               />
             </div>
           )}
@@ -250,12 +258,22 @@ export function FiltersSidebar({ records, state, setState }: Props) {
             title={FILTER_LABELS[k]}
             count={state[k].size}
           >
-            <ChipGroup
-              items={categoricalOptions[k]}
-              selected={state[k]}
-              onToggle={(v) => toggle(k, v)}
-              search
-            />
+            {k === "المدخل" ? (
+              <MultiSelectDropdown
+                items={categoricalOptions[k]}
+                selected={state[k]}
+                onToggle={(v) => toggle(k, v)}
+                onClear={() => clearKey(k)}
+                placeholder="اختر المُدخِل"
+              />
+            ) : (
+              <ChipGroup
+                items={categoricalOptions[k]}
+                selected={state[k]}
+                onToggle={(v) => toggle(k, v)}
+                search
+              />
+            )}
           </Section>
         ))}
       </div>

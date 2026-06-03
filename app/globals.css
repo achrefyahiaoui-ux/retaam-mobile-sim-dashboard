@@ -56,3 +56,39 @@ html, body {
   outline: 2px solid #FF6B3D;
   outline-offset: 2px;
 }
+
+/* Print stylesheet — PDF export */
+@media print {
+  @page { size: A4; margin: 12mm; }
+  html, body {
+    background: #ffffff !important;
+    color: #000 !important;
+  }
+  .no-print { display: none !important; }
+  aside {
+    position: static !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    width: 230px !important;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+  .thin-scroll {
+    overflow: visible !important;
+    max-height: none !important;
+  }
+  .chart-card {
+    page-break-inside: avoid;
+    break-inside: avoid;
+    box-shadow: none !important;
+    border: 1px solid #d1d5db;
+  }
+  .recharts-text {
+    fill: #000 !important;
+  }
+  /* Single column for charts when printing */
+  .print-grid-single {
+    grid-template-columns: 1fr !important;
+  }
+}

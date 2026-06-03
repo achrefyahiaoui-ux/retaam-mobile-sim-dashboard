@@ -39,5 +39,5 @@ export const CHART_PALETTE = [
 ];
 
 export function formatNum(n: number): string {
-  return new Intl.NumberFormat("ar-EG").format(n);
+  return new Intl.NumberFormat("en-US").format(n);
 }
