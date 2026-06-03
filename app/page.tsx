@@ -8,7 +8,7 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { applyFilters } from "@/lib/filter";
 import { groupSumBy, totalSum, uniqueValues } from "@/lib/aggregate";
 import { CATEGORICAL_KEYS, emptyFilterState, SimRecord } from "@/lib/types";
-import { CHART_PALETTE, CHART_TITLES, formatNum } from "@/lib/i18n";
+import { CHART_ORDER, CHART_PALETTE, CHART_TITLES, formatNum } from "@/lib/i18n";
 import { parseArabicDate } from "@/lib/date";
 
 type ApiPayload = { data: SimRecord[]; fetchedAt: string };
@@ -19,8 +19,11 @@ const fetcher = (url: string) =>
     return (await r.json()) as ApiPayload;
   });
 
-function dateRangeText(records: SimRecord[]): string {
-  if (records.length === 0) return "—";
+function fmtDate(d: Date): string {
+  return `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}/${d.getFullYear()}`;
+}
+
+function dateRange(records: SimRecord[]): { from: string | null; to: string | null } {
   let min: Date | null = null;
   let max: Date | null = null;
   for (const r of records) {
@@ -29,10 +32,7 @@ function dateRangeText(records: SimRecord[]): string {
     if (!min || d < min) min = d;
     if (!max || d > max) max = d;
   }
-  if (!min || !max) return "—";
-  const fmt = (d: Date) =>
-    `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}/${d.getFullYear()}`;
-  return min.getTime() === max.getTime() ? fmt(min) : `${fmt(min)} — ${fmt(max)}`;
+  return { from: min ? fmtDate(min) : null, to: max ? fmtDate(max) : null };
 }
 
 function formatTime(iso?: string) {
@@ -59,13 +59,40 @@ export default function DashboardPage() {
   const filtered = useMemo(() => applyFilters(records, filters), [records, filters]);
 
   const kpis = useMemo(() => {
+    const range = dateRange(filtered);
     return {
       total: totalSum(filtered),
       branches: uniqueValues<string>(filtered, "الفرع").length,
       activators: uniqueValues<string>(filtered, "المفعل").length,
-      range: dateRangeText(filtered),
+      rangeFrom: range.from,
+      rangeTo: range.to,
     };
   }, [filtered]);
+
+  const rangeNode = (() => {
+    if (!kpis.rangeFrom || !kpis.rangeTo) {
+      return <div className="text-2xl font-extrabold">—</div>;
+    }
+    if (kpis.rangeFrom === kpis.rangeTo) {
+      return (
+        <div className="text-xl font-extrabold tracking-tight font-num" data-num>
+          {kpis.rangeFrom}
+        </div>
+      );
+    }
+    return (
+      <div className="space-y-0.5 font-num" data-num>
+        <div className="flex items-baseline gap-1.5 text-base font-bold leading-tight">
+          <span className="text-[10px] font-semibold text-ink-500">من</span>
+          <span>{kpis.rangeFrom}</span>
+        </div>
+        <div className="flex items-baseline gap-1.5 text-base font-bold leading-tight">
+          <span className="text-[10px] font-semibold text-ink-500">إلى</span>
+          <span>{kpis.rangeTo}</span>
+        </div>
+      </div>
+    );
+  })();
 
   return (
     <div className="min-h-screen w-full">
@@ -147,7 +174,7 @@ export default function DashboardPage() {
                 <KpiCard label="إجمالي التفعيلات" value={kpis.total} accent="signal" hint="مجموع المُحدَّد بالفلاتر" />
                 <KpiCard label="عدد الفروع" value={kpis.branches} accent="teal" />
                 <KpiCard label="عدد المُفعِّلين" value={kpis.activators} accent="amber" />
-                <KpiCard label="النطاق الزمني" value={kpis.range} accent="plum" />
+                <KpiCard label="النطاق الزمني" value={rangeNode} accent="plum" />
               </>
             )}
           </section>
@@ -158,7 +185,7 @@ export default function DashboardPage() {
               ? Array.from({ length: 6 }).map((_, i) => (
                   <Skeleton key={i} className="h-[320px]" />
                 ))
-              : CATEGORICAL_KEYS.map((k, i) => (
+              : CHART_ORDER.map((k, i) => (
                   <BarChartCard
                     key={k}
                     title={CHART_TITLES[k]}

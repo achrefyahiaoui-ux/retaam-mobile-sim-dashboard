@@ -57,38 +57,70 @@ html, body {
   outline-offset: 2px;
 }
 
-/* Print stylesheet — PDF export */
+/* Print stylesheet — compact PDF export (target ~3 A4 pages) */
 @media print {
-  @page { size: A4; margin: 12mm; }
+  @page { size: A4 portrait; margin: 8mm; }
+
   html, body {
     background: #ffffff !important;
     color: #000 !important;
+    font-size: 10px !important;
   }
-  .no-print { display: none !important; }
-  aside {
-    position: static !important;
-    height: auto !important;
-    max-height: none !important;
-    overflow: visible !important;
-    width: 230px !important;
-    page-break-inside: avoid;
-    break-inside: avoid;
+
+  .no-print, aside { display: none !important; }
+
+  /* Strip outer padding so charts use full width */
+  main { padding: 0 !important; }
+  main > * + * { margin-top: 6px !important; }
+
+  /* Header — tighter */
+  header h1 { font-size: 14px !important; }
+  header p  { font-size: 9px !important; }
+
+  /* KPI cards — much smaller in print */
+  .kpi-card {
+    box-shadow: none !important;
+    border: 1px solid #d1d5db !important;
+    border-radius: 8px !important;
   }
-  .thin-scroll {
-    overflow: visible !important;
-    max-height: none !important;
+  .kpi-card > div:last-child { padding: 6px 10px !important; }
+  .kpi-card .text-3xl { font-size: 16px !important; }
+  .kpi-card [data-num] { font-size: 13px !important; }
+
+  /* 2-column chart grid in print */
+  .print-grid-single {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 6px !important;
   }
+
+  /* Chart card — slim padding, no shadow */
   .chart-card {
     page-break-inside: avoid;
     break-inside: avoid;
     box-shadow: none !important;
-    border: 1px solid #d1d5db;
+    border: 1px solid #d1d5db !important;
+    border-radius: 8px !important;
   }
-  .recharts-text {
-    fill: #000 !important;
+  .chart-card > div:first-child { padding: 6px 8px 0 8px !important; }
+  .chart-card > div:nth-child(2) { padding: 0 4px 4px 4px !important; }
+  .chart-card h3 { font-size: 11px !important; }
+  .chart-card p  { font-size: 9px !important; }
+
+  /* Cap chart height so 2 fit per row, ~3 rows per page */
+  .recharts-responsive-container,
+  .recharts-wrapper,
+  .recharts-wrapper svg {
+    height: 190px !important;
+    max-height: 190px !important;
   }
-  /* Single column for charts when printing */
-  .print-grid-single {
-    grid-template-columns: 1fr !important;
-  }
+
+  /* Crisp text */
+  .recharts-text { fill: #000 !important; font-size: 9px !important; }
+  .recharts-cartesian-axis-tick text { font-weight: 600 !important; }
+  .recharts-label text,
+  .recharts-bar-rectangles .recharts-text { font-size: 10px !important; }
+
+  /* Hide footer to save vertical space */
+  footer { display: none !important; }
 }

@@ -1,5 +1,17 @@
 import { CategoricalKey } from "./types";
 
+// Display order for the chart grid (independent of filter order).
+// المُفعِّل is intentionally last per product request.
+export const CHART_ORDER: CategoricalKey[] = [
+  "المدخل",
+  "مشرف الفرع",
+  "الفرع",
+  "المشروع",
+  "الخدمة",
+  "نوع الباقة",
+  "المفعل",
+];
+
 export const CHART_TITLES: Record<CategoricalKey, string> = {
   "المدخل": "حسب المُدخِل",
   "المفعل": "حسب المُفعِّل",
