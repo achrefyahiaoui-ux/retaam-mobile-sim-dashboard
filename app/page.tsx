@@ -10,6 +10,9 @@ import { groupSumBy, totalSum, uniqueValues } from "@/lib/aggregate";
 import { CATEGORICAL_KEYS, emptyFilterState, SimRecord } from "@/lib/types";
 import { CHART_ORDER, CHART_PALETTE, CHART_TITLES, formatNum } from "@/lib/i18n";
 import { parseArabicDate } from "@/lib/date";
+import { EntriesView } from "@/components/EntriesView";
+
+type TabKey = "dashboard" | "entries";
 
 type ApiPayload = { data: SimRecord[]; fetchedAt: string };
 
@@ -54,6 +57,7 @@ export default function DashboardPage() {
   );
 
   const [filters, setFilters] = useState(emptyFilterState);
+  const [tab, setTab] = useState<TabKey>("dashboard");
 
   const records = data?.data ?? [];
   const filtered = useMemo(() => applyFilters(records, filters), [records, filters]);
@@ -97,11 +101,13 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen w-full">
       <div className="mx-auto flex max-w-[1600px] gap-4 p-4 lg:p-6">
-        {/* Sidebar */}
-        {isLoading ? (
-          <Skeleton className="sticky top-4 h-[calc(100vh-2rem)] w-[300px] shrink-0" />
-        ) : (
-          <FiltersSidebar records={records} state={filters} setState={setFilters} />
+        {/* Sidebar — only on dashboard tab */}
+        {tab === "dashboard" && (
+          isLoading ? (
+            <Skeleton className="sticky top-4 h-[calc(100vh-2rem)] w-[300px] shrink-0" />
+          ) : (
+            <FiltersSidebar records={records} state={filters} setState={setFilters} />
+          )
         )}
 
         {/* Main */}
@@ -153,6 +159,33 @@ export default function DashboardPage() {
             </div>
           </header>
 
+          {/* Tabs */}
+          <nav className="no-print flex flex-wrap items-center gap-2 border-b border-ink-900/10 pb-1">
+            {([
+              { k: "dashboard", label: "لوحة التحكم" },
+              { k: "entries",   label: "قاعدة الإدخالات" },
+            ] as { k: TabKey; label: string }[]).map((t) => {
+              const active = tab === t.k;
+              return (
+                <button
+                  key={t.k}
+                  type="button"
+                  onClick={() => setTab(t.k)}
+                  className={`focus-ring relative rounded-t-xl px-4 py-2 text-sm font-bold transition ${
+                    active
+                      ? "bg-cream-50 text-ink-900 shadow-soft ring-1 ring-ink-900/5"
+                      : "text-ink-500 hover:bg-ink-900/[0.04] hover:text-ink-800"
+                  }`}
+                >
+                  {t.label}
+                  {active && (
+                    <span className="absolute inset-x-3 -bottom-[2px] h-0.5 rounded-full bg-signal-gradient" />
+                  )}
+                </button>
+              );
+            })}
+          </nav>
+
           {/* Error */}
           {error && (
             <div className="rounded-2xl border border-red-200 bg-red-50/80 p-4 text-sm text-red-900">
@@ -160,6 +193,10 @@ export default function DashboardPage() {
             </div>
           )}
 
+          {tab === "entries" ? (
+            <EntriesView />
+          ) : (
+          <>
           {/* KPIs */}
           <section className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             {isLoading ? (
@@ -194,6 +231,8 @@ export default function DashboardPage() {
                   />
                 ))}
           </section>
+          </>
+          )}
 
           <footer className="pt-2 pb-6 text-center text-[11px] text-ink-500">
             البيانات تُحدَّث تلقائياً كل 30 ثانية · مصدر البيانات: n8n Webhook
