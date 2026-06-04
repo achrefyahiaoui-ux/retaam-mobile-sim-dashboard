@@ -3,9 +3,13 @@ import { NextResponse } from "next/server";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const PLANS_URL =
+const PLANS_LIST_URL =
   process.env.RETAAM_PLANS_URL ??
   "https://n8n.srv987649.hstgr.cloud/webhook/PlansList";
+
+const PLANS_ADD_URL =
+  process.env.RETAAM_PLANS_ADD_URL ??
+  "https://n8n.srv987649.hstgr.cloud/webhook-test/AddPlan";
 
 function stripQuotes(v: unknown): unknown {
   if (typeof v !== "string") return v;
@@ -23,7 +27,7 @@ function cleanRecord(rec: Record<string, unknown>): Record<string, unknown> {
 
 export async function GET() {
   try {
-    const upstream = await fetch(PLANS_URL, {
+    const upstream = await fetch(PLANS_LIST_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: "{}",
@@ -53,7 +57,7 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const body = await req.json().catch(() => ({}));
-    const upstream = await fetch(PLANS_URL, {
+    const upstream = await fetch(PLANS_ADD_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
