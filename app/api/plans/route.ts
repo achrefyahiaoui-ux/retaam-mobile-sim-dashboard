@@ -5,7 +5,7 @@ export const dynamic = "force-dynamic";
 
 const PLANS_URL =
   process.env.RETAAM_PLANS_URL ??
-  "https://n8n.srv987649.hstgr.cloud/webhook-test/PlansList";
+  "https://n8n.srv987649.hstgr.cloud/webhook/PlansList";
 
 function stripQuotes(v: unknown): unknown {
   if (typeof v !== "string") return v;
