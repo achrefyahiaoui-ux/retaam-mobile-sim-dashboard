@@ -16,6 +16,11 @@ const ENDPOINTS: Record<string, string> = {
   sites: "sitesList",
 };
 
+const ADD_ENDPOINTS: Record<string, string> = {
+  supervisors: "Addsuppervisor",
+  sites: "Addsite",
+};
+
 function stripQuotes(v: unknown): unknown {
   if (typeof v !== "string") return v;
   return v.replace(/^"+|"+$/g, "").trim();
@@ -61,6 +66,41 @@ export async function GET(
   } catch (e: any) {
     return NextResponse.json(
       { error: e?.message ?? "fetch_failed" },
+      { status: 502 }
+    );
+  }
+}
+
+export async function POST(
+  req: Request,
+  ctx: { params: { type: string } }
+) {
+  const slug = ADD_ENDPOINTS[ctx.params.type];
+  if (!slug) {
+    return NextResponse.json({ error: "add_not_supported" }, { status: 404 });
+  }
+  try {
+    const body = await req.json().catch(() => ({}));
+    const upstream = await fetch(`${BASE}/${slug}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+      cache: "no-store",
+    });
+    const text = await upstream.text();
+    let payload: unknown = text;
+    try {
+      payload = JSON.parse(text);
+    } catch {
+      /* keep as text */
+    }
+    return NextResponse.json(
+      { ok: upstream.ok, status: upstream.status, response: payload },
+      { status: upstream.ok ? 200 : 502 }
+    );
+  } catch (e: any) {
+    return NextResponse.json(
+      { ok: false, error: e?.message ?? "post_failed" },
       { status: 502 }
     );
   }

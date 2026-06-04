@@ -203,9 +203,21 @@ export default function DashboardPage() {
           ) : tab === "plans" ? (
             <PlansView />
           ) : tab === "supervisors" ? (
-            <SingleTableView endpoint="/api/entries/supervisors" title="اسماء المشرفين" accent="amber" />
+            <SingleTableView
+              endpoint="/api/entries/supervisors"
+              title="اسماء المشرفين"
+              accent="amber"
+              addLabel="إضافة مشرف"
+              addTitle="إضافة مشرف جديد"
+            />
           ) : tab === "sites" ? (
-            <SingleTableView endpoint="/api/entries/sites" title="المواقع" accent="signal" />
+            <SingleTableView
+              endpoint="/api/entries/sites"
+              title="المواقع"
+              accent="signal"
+              addLabel="إضافة موقع"
+              addTitle="إضافة موقع جديد"
+            />
           ) : (
           <>
           {/* KPIs */}
