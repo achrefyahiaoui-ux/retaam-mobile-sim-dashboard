@@ -26,9 +26,14 @@ const ACCENT_CHIP: Record<NonNullable<Props["accent"]>, string> = {
   plum: "bg-plum/15 text-[#7b4cb0]",
 };
 
-function formatCell(v: unknown): string {
+const ID_COL = /سيريال|رقم/;
+
+function formatCell(v: unknown, col?: string): string {
   if (v === null || v === undefined || v === "") return "—";
-  if (typeof v === "number") return formatNum(v);
+  if (typeof v === "number") {
+    if (col && ID_COL.test(col)) return String(Math.trunc(v));
+    return formatNum(v);
+  }
   if (typeof v === "boolean") return v ? "نعم" : "لا";
   return String(v);
 }
@@ -56,7 +61,7 @@ export function DataTable({ title, data, isLoading, error, accent = "signal" }: 
     if (activeKeys.length === 0) return data;
     return data.filter((row) =>
       activeKeys.every((k) => {
-        const cell = formatCell(row[k]).toLowerCase();
+        const cell = formatCell(row[k], k).toLowerCase();
         return cell.includes(filters[k].toLowerCase());
       })
     );
@@ -136,6 +141,7 @@ export function DataTable({ title, data, isLoading, error, accent = "signal" }: 
                   {columns.map((c) => {
                     const v = row[c];
                     const isNum = typeof v === "number";
+                    const text = formatCell(v, c);
                     return (
                       <td
                         key={c}
@@ -143,9 +149,9 @@ export function DataTable({ title, data, isLoading, error, accent = "signal" }: 
                           isNum ? "font-num" : ""
                         }`}
                         data-num={isNum ? "" : undefined}
-                        title={formatCell(v)}
+                        title={text}
                       >
-                        {formatCell(v)}
+                        {text}
                       </td>
                     );
                   })}

@@ -11,8 +11,9 @@ import { CATEGORICAL_KEYS, emptyFilterState, SimRecord } from "@/lib/types";
 import { CHART_ORDER, CHART_PALETTE, CHART_TITLES, formatNum } from "@/lib/i18n";
 import { parseArabicDate } from "@/lib/date";
 import { EntriesView } from "@/components/EntriesView";
+import { PlansView } from "@/components/PlansView";
 
-type TabKey = "dashboard" | "entries";
+type TabKey = "dashboard" | "entries" | "plans";
 
 type ApiPayload = { data: SimRecord[]; fetchedAt: string };
 
@@ -104,7 +105,7 @@ export default function DashboardPage() {
         {/* Sidebar — only on dashboard tab */}
         {tab === "dashboard" && (
           isLoading ? (
-            <Skeleton className="sticky top-4 h-[calc(100vh-2rem)] w-[300px] shrink-0" />
+            <Skeleton className="sticky top-4 h-[calc(100vh-2rem)] w-[300px] shrink-0 no-print" />
           ) : (
             <FiltersSidebar records={records} state={filters} setState={setFilters} />
           )
@@ -164,6 +165,7 @@ export default function DashboardPage() {
             {([
               { k: "dashboard", label: "لوحة التحكم" },
               { k: "entries",   label: "قاعدة الإدخالات" },
+              { k: "plans",     label: "الباقات" },
             ] as { k: TabKey; label: string }[]).map((t) => {
               const active = tab === t.k;
               return (
@@ -195,6 +197,8 @@ export default function DashboardPage() {
 
           {tab === "entries" ? (
             <EntriesView />
+          ) : tab === "plans" ? (
+            <PlansView />
           ) : (
           <>
           {/* KPIs */}
