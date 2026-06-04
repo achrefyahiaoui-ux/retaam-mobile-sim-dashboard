@@ -12,8 +12,9 @@ import { CHART_ORDER, CHART_PALETTE, CHART_TITLES, formatNum } from "@/lib/i18n"
 import { parseArabicDate } from "@/lib/date";
 import { EntriesView } from "@/components/EntriesView";
 import { PlansView } from "@/components/PlansView";
+import { SingleTableView } from "@/components/SingleTableView";
 
-type TabKey = "dashboard" | "entries" | "plans";
+type TabKey = "dashboard" | "entries" | "plans" | "supervisors" | "sites";
 
 type ApiPayload = { data: SimRecord[]; fetchedAt: string };
 
@@ -163,9 +164,11 @@ export default function DashboardPage() {
           {/* Tabs */}
           <nav className="no-print flex flex-wrap items-center gap-2 border-b border-ink-900/10 pb-1">
             {([
-              { k: "dashboard", label: "لوحة التحكم" },
-              { k: "entries",   label: "قاعدة الإدخالات" },
-              { k: "plans",     label: "الباقات" },
+              { k: "dashboard",   label: "لوحة التحكم" },
+              { k: "entries",     label: "قاعدة الإدخالات" },
+              { k: "plans",       label: "الباقات" },
+              { k: "supervisors", label: "اسماء المشرفين" },
+              { k: "sites",       label: "المواقع" },
             ] as { k: TabKey; label: string }[]).map((t) => {
               const active = tab === t.k;
               return (
@@ -199,6 +202,10 @@ export default function DashboardPage() {
             <EntriesView />
           ) : tab === "plans" ? (
             <PlansView />
+          ) : tab === "supervisors" ? (
+            <SingleTableView endpoint="/api/entries/supervisors" title="اسماء المشرفين" accent="amber" />
+          ) : tab === "sites" ? (
+            <SingleTableView endpoint="/api/entries/sites" title="المواقع" accent="signal" />
           ) : (
           <>
           {/* KPIs */}

@@ -12,6 +12,8 @@ const ENDPOINTS: Record<string, string> = {
   replacement: "replacement",
   renew: "renew",
   newplan: "NewPaln",
+  supervisors: "SupervisorsList",
+  sites: "sitesList",
 };
 
 function stripQuotes(v: unknown): unknown {
