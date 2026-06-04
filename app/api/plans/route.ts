@@ -9,7 +9,7 @@ const PLANS_LIST_URL =
 
 const PLANS_ADD_URL =
   process.env.RETAAM_PLANS_ADD_URL ??
-  "https://n8n.srv987649.hstgr.cloud/webhook-test/AddPlan";
+  "https://n8n.srv987649.hstgr.cloud/webhook/AddPlan";
 
 function stripQuotes(v: unknown): unknown {
   if (typeof v !== "string") return v;
