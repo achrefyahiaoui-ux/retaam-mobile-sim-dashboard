@@ -14,13 +14,14 @@ type Section = {
   type: "activation" | "replacement" | "renew" | "newplan";
   title: string;
   accent: "signal" | "teal" | "amber" | "plum";
+  exportName: string;
 };
 
 const SECTIONS: Section[] = [
-  { type: "activation",  title: "إدخالات التفعيل",     accent: "signal" },
-  { type: "replacement", title: "إدخالات بدل فاقد",    accent: "teal" },
-  { type: "renew",       title: "إدخالات التجديد",     accent: "amber" },
-  { type: "newplan",     title: "إدخالات إضافة باقة",  accent: "plum" },
+  { type: "activation",  title: "إدخالات التفعيل",     accent: "signal", exportName: "activation-entries" },
+  { type: "replacement", title: "إدخالات بدل فاقد",    accent: "teal",   exportName: "replacement-entries" },
+  { type: "renew",       title: "إدخالات التجديد",     accent: "amber",  exportName: "renew-entries" },
+  { type: "newplan",     title: "إدخالات إضافة باقة",  accent: "plum",   exportName: "newplan-entries" },
 ];
 
 function TableSection({ section }: { section: Section }) {
@@ -36,6 +37,7 @@ function TableSection({ section }: { section: Section }) {
       isLoading={isLoading}
       error={!!error}
       accent={section.accent}
+      exportFileName={section.exportName}
     />
   );
 }

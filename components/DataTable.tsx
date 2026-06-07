@@ -10,6 +10,7 @@ type Props = {
   isLoading?: boolean;
   error?: boolean;
   accent?: "signal" | "teal" | "amber" | "plum";
+  exportFileName?: string;
 };
 
 const ACCENT_BAR: Record<NonNullable<Props["accent"]>, string> = {
@@ -52,9 +53,10 @@ function discoverColumns(rows: Row[]): string[] {
   return out;
 }
 
-export function DataTable({ title, data, isLoading, error, accent = "signal" }: Props) {
+export function DataTable({ title, data, isLoading, error, accent = "signal", exportFileName }: Props) {
   const columns = useMemo(() => discoverColumns(data), [data]);
   const [filters, setFilters] = useState<Record<string, string>>({});
+  const [exporting, setExporting] = useState(false);
 
   const filtered = useMemo(() => {
     const activeKeys = Object.keys(filters).filter((k) => filters[k]?.trim());
@@ -73,6 +75,38 @@ export function DataTable({ title, data, isLoading, error, accent = "signal" }: 
   const clearFilters = () => setFilters({});
   const activeFilterCount = Object.values(filters).filter((v) => v?.trim()).length;
 
+  const handleExport = async () => {
+    if (!exportFileName || exporting || filtered.length === 0) return;
+    setExporting(true);
+    try {
+      const XLSX = await import("xlsx");
+      const aoa: unknown[][] = [columns];
+      for (const row of filtered) {
+        aoa.push(
+          columns.map((c) => {
+            const v = row[c];
+            if (v === null || v === undefined) return "";
+            if (typeof v === "number" || typeof v === "boolean") return v;
+            return String(v);
+          })
+        );
+      }
+      const ws = XLSX.utils.aoa_to_sheet(aoa);
+      ws["!cols"] = columns.map((c) => ({
+        wch: Math.min(40, Math.max(8, c.length + 2)),
+      }));
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+      const stamp = new Date()
+        .toISOString()
+        .slice(0, 16)
+        .replace(/[:T]/g, "-");
+      XLSX.writeFile(wb, `${exportFileName}-${stamp}.xlsx`);
+    } finally {
+      setExporting(false);
+    }
+  };
+
   return (
     <section className="overflow-hidden rounded-2xl bg-cream-50 shadow-card ring-1 ring-ink-900/5">
       <header className="flex flex-wrap items-center justify-between gap-2 border-b border-ink-900/8 px-4 py-3">
@@ -84,15 +118,31 @@ export function DataTable({ title, data, isLoading, error, accent = "signal" }: 
             {filtered.length !== data.length && ` / ${formatNum(data.length)}`}
           </span>
         </div>
-        {activeFilterCount > 0 && (
-          <button
-            type="button"
-            onClick={clearFilters}
-            className="focus-ring rounded-full bg-ink-900/5 px-2.5 py-1 text-[11px] font-semibold text-ink-700 hover:bg-ink-900/10"
-          >
-            مسح الفلاتر ({formatNum(activeFilterCount)})
-          </button>
-        )}
+        <div className="flex items-center gap-2">
+          {activeFilterCount > 0 && (
+            <button
+              type="button"
+              onClick={clearFilters}
+              className="focus-ring rounded-full bg-ink-900/5 px-2.5 py-1 text-[11px] font-semibold text-ink-700 hover:bg-ink-900/10"
+            >
+              مسح الفلاتر ({formatNum(activeFilterCount)})
+            </button>
+          )}
+          {exportFileName && (
+            <button
+              type="button"
+              onClick={handleExport}
+              disabled={exporting || filtered.length === 0}
+              className="no-print focus-ring inline-flex items-center gap-1.5 rounded-full bg-ink-900 px-2.5 py-1 text-[11px] font-bold text-cream-50 shadow-soft hover:bg-ink-800 disabled:bg-ink-300/40 disabled:text-ink-500 disabled:shadow-none"
+              title="تصدير إلى Excel"
+            >
+              <svg viewBox="0 0 20 20" fill="currentColor" className="h-3 w-3" aria-hidden>
+                <path fillRule="evenodd" d="M3 4a2 2 0 012-2h7l5 5v9a2 2 0 01-2 2H5a2 2 0 01-2-2V4zm9 0v4h4l-4-4zM7.5 11a.5.5 0 01.42.23l.95 1.48.95-1.48a.5.5 0 11.84.54l-1.27 1.98 1.32 2.06a.5.5 0 11-.84.54l-.99-1.55-.99 1.55a.5.5 0 01-.84-.54l1.32-2.06-1.27-1.98A.5.5 0 017.5 11z" clipRule="evenodd" />
+              </svg>
+              {exporting ? "جاري التصدير…" : "تصدير Excel"}
+            </button>
+          )}
+        </div>
       </header>
 
       {isLoading ? (
