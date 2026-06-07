@@ -1,5 +1,6 @@
 "use client";
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import useSWR from "swr";
 import { FiltersSidebar } from "@/components/FiltersSidebar";
 import { BarChartCard } from "@/components/BarChartCard";
@@ -60,6 +61,16 @@ export default function DashboardPage() {
 
   const [filters, setFilters] = useState(emptyFilterState);
   const [tab, setTab] = useState<TabKey>("dashboard");
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+    } catch {
+      /* ignore */
+    }
+    router.replace("/login");
+  };
 
   const records = data?.data ?? [];
   const filtered = useMemo(() => applyFilters(records, filters), [records, filters]);
@@ -157,6 +168,17 @@ export default function DashboardPage() {
                   <path fillRule="evenodd" d="M5 4a2 2 0 012-2h6a2 2 0 012 2v3h1a2 2 0 012 2v5a2 2 0 01-2 2h-1v1a2 2 0 01-2 2H7a2 2 0 01-2-2v-1H4a2 2 0 01-2-2V9a2 2 0 012-2h1V4zm2 3h6V4H7v3zm0 6h6v3H7v-3zm-2-3a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
                 </svg>
                 طباعة PDF
+              </button>
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="no-print focus-ring inline-flex items-center gap-1.5 rounded-full bg-cream-50 px-3 py-2 text-[11px] font-bold text-ink-800 shadow-soft ring-1 ring-ink-900/10 hover:bg-ink-900/5"
+                title="تسجيل الخروج"
+              >
+                <svg viewBox="0 0 20 20" fill="currentColor" className="h-3.5 w-3.5" aria-hidden>
+                  <path fillRule="evenodd" d="M3 4a2 2 0 012-2h6a2 2 0 012 2v2a1 1 0 11-2 0V4H5v12h6v-2a1 1 0 112 0v2a2 2 0 01-2 2H5a2 2 0 01-2-2V4zm12.293 4.293a1 1 0 011.414 0l2 2a1 1 0 010 1.414l-2 2a1 1 0 11-1.414-1.414L15.586 11H9a1 1 0 110-2h6.586l-.293-.293a1 1 0 010-1.414z" clipRule="evenodd" />
+                </svg>
+                خروج
               </button>
             </div>
           </header>
