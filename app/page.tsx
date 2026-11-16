@@ -231,7 +231,7 @@ export default function DashboardPage() {
               accent="amber"
               addLabel="إضافة مشرف"
               addTitle="إضافة مشرف جديد"
-              deleteTitle="حذف مشرفين"
+              deleteTitle="حذف مشرف"
             />
           ) : tab === "sites" ? (
             <SingleTableView
@@ -240,7 +240,6 @@ export default function DashboardPage() {
               accent="signal"
               addLabel="إضافة موقع"
               addTitle="إضافة موقع جديد"
-              deleteTitle="حذف مواقع"
             />
           ) : (
           <>

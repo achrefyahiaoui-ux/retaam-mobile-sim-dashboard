@@ -64,13 +64,17 @@ export function ConfirmDeleteModal({ open, onClose, title, rows, onConfirm }: Pr
           </button>
         </div>
         <div className="space-y-3 p-4">
+          {rows.length === 1 ? (
+            <p className="text-sm text-ink-800">هل أنت متأكد من حذف هذا العنصر؟</p>
+          ) : (
           <p className="text-sm text-ink-800">
             سيتم حذف{" "}
             <span className="font-extrabold font-num" data-num>
               {formatNum(rows.length)}
             </span>{" "}
-            {rows.length === 1 ? "عنصر" : "عناصر"}. هل أنت متأكد؟
+            عناصر. هل أنت متأكد؟
           </p>
+          )}
           <ul className="thin-scroll max-h-[40vh] space-y-1 overflow-y-auto rounded-lg bg-white p-2 ring-1 ring-ink-900/10">
             {rows.map((r, i) => (
               <li key={i} className="rounded-md px-2 py-1 text-xs text-ink-800 odd:bg-cream-100/50">
