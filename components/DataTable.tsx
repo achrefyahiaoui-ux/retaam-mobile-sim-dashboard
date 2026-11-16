@@ -11,7 +11,15 @@ type Props = {
   error?: boolean;
   accent?: "signal" | "teal" | "amber" | "plum";
   exportFileName?: string;
+  /** When set, shows a checkbox column for multi-select. */
+  selectedKeys?: Set<string>;
+  onSelectionChange?: (keys: Set<string>) => void;
 };
+
+/** Stable identity for a row (rows from n8n have no id column). */
+export function rowKey(row: Row): string {
+  return JSON.stringify(row);
+}
 
 const ACCENT_BAR: Record<NonNullable<Props["accent"]>, string> = {
   signal: "bg-signal",
@@ -53,7 +61,17 @@ function discoverColumns(rows: Row[]): string[] {
   return out;
 }
 
-export function DataTable({ title, data, isLoading, error, accent = "signal", exportFileName }: Props) {
+export function DataTable({
+  title,
+  data,
+  isLoading,
+  error,
+  accent = "signal",
+  exportFileName,
+  selectedKeys,
+  onSelectionChange,
+}: Props) {
+  const selectable = !!selectedKeys && !!onSelectionChange;
   const columns = useMemo(() => discoverColumns(data), [data]);
   const [filters, setFilters] = useState<Record<string, string>>({});
   const [exporting, setExporting] = useState(false);
@@ -68,6 +86,30 @@ export function DataTable({ title, data, isLoading, error, accent = "signal", ex
       })
     );
   }, [data, filters]);
+
+  const filteredKeys = useMemo(() => filtered.map(rowKey), [filtered]);
+  const allVisibleSelected =
+    selectable &&
+    filteredKeys.length > 0 &&
+    filteredKeys.every((k) => selectedKeys!.has(k));
+  const someVisibleSelected =
+    selectable && filteredKeys.some((k) => selectedKeys!.has(k));
+
+  const toggleRow = (key: string) => {
+    if (!selectable) return;
+    const next = new Set(selectedKeys);
+    if (next.has(key)) next.delete(key);
+    else next.add(key);
+    onSelectionChange!(next);
+  };
+
+  const toggleAllVisible = () => {
+    if (!selectable) return;
+    const next = new Set(selectedKeys);
+    if (allVisibleSelected) filteredKeys.forEach((k) => next.delete(k));
+    else filteredKeys.forEach((k) => next.add(k));
+    onSelectionChange!(next);
+  };
 
   const setFilter = (col: string, v: string) =>
     setFilters((prev) => ({ ...prev, [col]: v }));
@@ -156,6 +198,24 @@ export function DataTable({ title, data, isLoading, error, accent = "signal", ex
           <table className="w-full border-collapse text-right text-[12px]">
             <thead className="sticky top-0 z-10 bg-cream-100">
               <tr>
+                {selectable && (
+                  <th
+                    rowSpan={2}
+                    className="no-print w-10 border-b border-ink-900/10 px-3 py-2 text-center align-middle"
+                  >
+                    <input
+                      type="checkbox"
+                      aria-label="تحديد الكل"
+                      title="تحديد الكل"
+                      checked={allVisibleSelected}
+                      ref={(el) => {
+                        if (el) el.indeterminate = !allVisibleSelected && someVisibleSelected;
+                      }}
+                      onChange={toggleAllVisible}
+                      className="h-4 w-4 cursor-pointer accent-signal"
+                    />
+                  </th>
+                )}
                 {columns.map((c) => (
                   <th
                     key={c}
@@ -183,11 +243,35 @@ export function DataTable({ title, data, isLoading, error, accent = "signal", ex
               </tr>
             </thead>
             <tbody>
-              {filtered.map((row, i) => (
+              {filtered.map((row, i) => {
+                const key = filteredKeys[i];
+                const isSelected = selectable && selectedKeys!.has(key);
+                return (
                 <tr
                   key={i}
-                  className={i % 2 === 0 ? "bg-cream-50" : "bg-cream-100/40"}
+                  onClick={selectable ? () => toggleRow(key) : undefined}
+                  className={`${
+                    isSelected
+                      ? "bg-signal/10"
+                      : i % 2 === 0
+                      ? "bg-cream-50"
+                      : "bg-cream-100/40"
+                  } ${selectable ? "cursor-pointer hover:bg-signal/5" : ""}`}
                 >
+                  {selectable && (
+                    <td
+                      className="no-print border-b border-ink-900/5 px-3 py-1.5 text-center align-middle"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <input
+                        type="checkbox"
+                        aria-label="تحديد"
+                        checked={isSelected}
+                        onChange={() => toggleRow(key)}
+                        className="h-4 w-4 cursor-pointer accent-signal"
+                      />
+                    </td>
+                  )}
                   {columns.map((c) => {
                     const v = row[c];
                     const isNum = typeof v === "number";
@@ -206,11 +290,12 @@ export function DataTable({ title, data, isLoading, error, accent = "signal", ex
                     );
                   })}
                 </tr>
-              ))}
+                );
+              })}
               {filtered.length === 0 && (
                 <tr>
                   <td
-                    colSpan={columns.length}
+                    colSpan={columns.length + (selectable ? 1 : 0)}
                     className="px-3 py-6 text-center text-ink-500"
                   >
                     لا توجد نتائج مطابقة للفلاتر
