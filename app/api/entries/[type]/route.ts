@@ -17,6 +17,9 @@ const ENDPOINTS: Record<string, string> = {
   sites: "sitesList",
 };
 
+// Only supervisors can be deleted from the dashboard.
+const DELETABLE = new Set(["supervisors"]);
+
 const ADD_ENDPOINTS: Record<string, string> = {
   supervisors: "Addsuppervisor",
   sites: "Addsite",
@@ -78,6 +81,9 @@ async function write(
   operation: "add" | "delete"
 ) {
   const slug = ADD_ENDPOINTS[type];
+  if (operation === "delete" && !DELETABLE.has(type)) {
+    return NextResponse.json({ error: "delete_not_supported" }, { status: 404 });
+  }
   if (!slug) {
     return NextResponse.json({ error: "write_not_supported" }, { status: 404 });
   }

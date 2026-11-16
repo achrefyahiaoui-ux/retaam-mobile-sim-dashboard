@@ -59,8 +59,3 @@ export async function POST(req: Request) {
   const body = await req.json().catch(() => ({}));
   return forwardToWebhook(PLANS_ADD_URL, "add", body);
 }
-
-export async function DELETE(req: Request) {
-  const body = await req.json().catch(() => ({}));
-  return forwardToWebhook(PLANS_ADD_URL, "delete", body);
-}

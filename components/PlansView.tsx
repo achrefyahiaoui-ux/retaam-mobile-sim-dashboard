@@ -9,8 +9,7 @@ export function PlansView() {
       accent="plum"
       addLabel="إضافة باقة"
       addTitle="إضافة باقة جديدة"
-      deleteTitle="حذف باقات"
-      description="إدارة قائمة الباقات. يمكنك إضافة أو حذف باقات وإرسالها مباشرة إلى n8n."
+      description="إدارة قائمة الباقات. يمكنك إضافة باقة جديدة وإرسالها مباشرة إلى n8n."
     />
   );
 }

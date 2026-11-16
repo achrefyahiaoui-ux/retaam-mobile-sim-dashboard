@@ -11,15 +11,9 @@ type Props = {
   error?: boolean;
   accent?: "signal" | "teal" | "amber" | "plum";
   exportFileName?: string;
-  /** When set, shows a checkbox column for multi-select. */
-  selectedKeys?: Set<string>;
-  onSelectionChange?: (keys: Set<string>) => void;
+  /** When set, shows a trash-can button on each row. */
+  onDeleteRow?: (row: Row) => void;
 };
-
-/** Stable identity for a row (rows from n8n have no id column). */
-export function rowKey(row: Row): string {
-  return JSON.stringify(row);
-}
 
 const ACCENT_BAR: Record<NonNullable<Props["accent"]>, string> = {
   signal: "bg-signal",
@@ -68,10 +62,9 @@ export function DataTable({
   error,
   accent = "signal",
   exportFileName,
-  selectedKeys,
-  onSelectionChange,
+  onDeleteRow,
 }: Props) {
-  const selectable = !!selectedKeys && !!onSelectionChange;
+  const deletable = !!onDeleteRow;
   const columns = useMemo(() => discoverColumns(data), [data]);
   const [filters, setFilters] = useState<Record<string, string>>({});
   const [exporting, setExporting] = useState(false);
@@ -86,30 +79,6 @@ export function DataTable({
       })
     );
   }, [data, filters]);
-
-  const filteredKeys = useMemo(() => filtered.map(rowKey), [filtered]);
-  const allVisibleSelected =
-    selectable &&
-    filteredKeys.length > 0 &&
-    filteredKeys.every((k) => selectedKeys!.has(k));
-  const someVisibleSelected =
-    selectable && filteredKeys.some((k) => selectedKeys!.has(k));
-
-  const toggleRow = (key: string) => {
-    if (!selectable) return;
-    const next = new Set(selectedKeys);
-    if (next.has(key)) next.delete(key);
-    else next.add(key);
-    onSelectionChange!(next);
-  };
-
-  const toggleAllVisible = () => {
-    if (!selectable) return;
-    const next = new Set(selectedKeys);
-    if (allVisibleSelected) filteredKeys.forEach((k) => next.delete(k));
-    else filteredKeys.forEach((k) => next.add(k));
-    onSelectionChange!(next);
-  };
 
   const setFilter = (col: string, v: string) =>
     setFilters((prev) => ({ ...prev, [col]: v }));
@@ -198,23 +167,12 @@ export function DataTable({
           <table className="w-full border-collapse text-right text-[12px]">
             <thead className="sticky top-0 z-10 bg-cream-100">
               <tr>
-                {selectable && (
+                {deletable && (
                   <th
                     rowSpan={2}
-                    className="no-print w-10 border-b border-ink-900/10 px-3 py-2 text-center align-middle"
-                  >
-                    <input
-                      type="checkbox"
-                      aria-label="تحديد الكل"
-                      title="تحديد الكل"
-                      checked={allVisibleSelected}
-                      ref={(el) => {
-                        if (el) el.indeterminate = !allVisibleSelected && someVisibleSelected;
-                      }}
-                      onChange={toggleAllVisible}
-                      className="h-4 w-4 cursor-pointer accent-signal"
-                    />
-                  </th>
+                    className="no-print w-10 border-b border-ink-900/10 px-2 py-2"
+                    aria-label="حذف"
+                  />
                 )}
                 {columns.map((c) => (
                   <th
@@ -244,32 +202,24 @@ export function DataTable({
             </thead>
             <tbody>
               {filtered.map((row, i) => {
-                const key = filteredKeys[i];
-                const isSelected = selectable && selectedKeys!.has(key);
                 return (
                 <tr
                   key={i}
-                  onClick={selectable ? () => toggleRow(key) : undefined}
-                  className={`${
-                    isSelected
-                      ? "bg-signal/10"
-                      : i % 2 === 0
-                      ? "bg-cream-50"
-                      : "bg-cream-100/40"
-                  } ${selectable ? "cursor-pointer hover:bg-signal/5" : ""}`}
+                  className={`group ${i % 2 === 0 ? "bg-cream-50" : "bg-cream-100/40"}`}
                 >
-                  {selectable && (
-                    <td
-                      className="no-print border-b border-ink-900/5 px-3 py-1.5 text-center align-middle"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <input
-                        type="checkbox"
-                        aria-label="تحديد"
-                        checked={isSelected}
-                        onChange={() => toggleRow(key)}
-                        className="h-4 w-4 cursor-pointer accent-signal"
-                      />
+                  {deletable && (
+                    <td className="no-print border-b border-ink-900/5 px-2 py-1 text-center align-middle">
+                      <button
+                        type="button"
+                        onClick={() => onDeleteRow!(row)}
+                        aria-label="حذف"
+                        title="حذف"
+                        className="focus-ring inline-flex h-7 w-7 items-center justify-center rounded-full text-ink-500 hover:bg-red-500/10 hover:text-red-700"
+                      >
+                        <svg viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4" aria-hidden>
+                          <path fillRule="evenodd" d="M8 2a1 1 0 00-.94.66L6.72 4H4a1 1 0 000 2h.07l.8 10.4A2 2 0 006.86 18h6.28a2 2 0 001.99-1.6L15.93 6H16a1 1 0 100-2h-2.72l-.34-1.34A1 1 0 0012 2H8zm.5 6a.75.75 0 01.75.75v5.5a.75.75 0 01-1.5 0v-5.5A.75.75 0 018.5 8zm3.75.75a.75.75 0 00-1.5 0v5.5a.75.75 0 001.5 0v-5.5z" clipRule="evenodd" />
+                        </svg>
+                      </button>
                     </td>
                   )}
                   {columns.map((c) => {
@@ -295,7 +245,7 @@ export function DataTable({
               {filtered.length === 0 && (
                 <tr>
                   <td
-                    colSpan={columns.length + (selectable ? 1 : 0)}
+                    colSpan={columns.length + (deletable ? 1 : 0)}
                     className="px-3 py-6 text-center text-ink-500"
                   >
                     لا توجد نتائج مطابقة للفلاتر
