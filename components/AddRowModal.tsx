@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 type Field = { key: string; value: string };
 
@@ -16,16 +16,24 @@ export function AddRowModal({ open, onClose, title, initialFields, onSubmit }: P
   const [submitting, setSubmitting] = useState(false);
   const [feedback, setFeedback] = useState<{ ok: boolean; msg: string } | null>(null);
 
+  // Keep the latest column list without making it a reset trigger: the table
+  // re-fetches in the background (every 30s and on window focus), which hands
+  // us a new array each time and used to wipe whatever the user was typing.
+  const initialFieldsRef = useRef(initialFields);
+  initialFieldsRef.current = initialFields;
+
+  // Reset the form only when the modal opens.
   useEffect(() => {
     if (open) {
+      const cols = initialFieldsRef.current;
       setFields(
-        initialFields.length > 0
-          ? initialFields.map((k) => ({ key: k, value: "" }))
+        cols.length > 0
+          ? cols.map((k) => ({ key: k, value: "" }))
           : [{ key: "", value: "" }]
       );
       setFeedback(null);
     }
-  }, [open, initialFields]);
+  }, [open]);
 
   if (!open) return null;
 

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { forwardToWebhook } from "@/lib/webhook";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -71,37 +72,23 @@ export async function GET(
   }
 }
 
-export async function POST(
+async function write(
   req: Request,
-  ctx: { params: { type: string } }
+  type: string,
+  operation: "add" | "delete"
 ) {
-  const slug = ADD_ENDPOINTS[ctx.params.type];
+  const slug = ADD_ENDPOINTS[type];
   if (!slug) {
-    return NextResponse.json({ error: "add_not_supported" }, { status: 404 });
+    return NextResponse.json({ error: "write_not_supported" }, { status: 404 });
   }
-  try {
-    const body = await req.json().catch(() => ({}));
-    const upstream = await fetch(`${BASE}/${slug}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-      cache: "no-store",
-    });
-    const text = await upstream.text();
-    let payload: unknown = text;
-    try {
-      payload = JSON.parse(text);
-    } catch {
-      /* keep as text */
-    }
-    return NextResponse.json(
-      { ok: upstream.ok, status: upstream.status, response: payload },
-      { status: upstream.ok ? 200 : 502 }
-    );
-  } catch (e: any) {
-    return NextResponse.json(
-      { ok: false, error: e?.message ?? "post_failed" },
-      { status: 502 }
-    );
-  }
+  const body = await req.json().catch(() => ({}));
+  return forwardToWebhook(`${BASE}/${slug}`, operation, body);
+}
+
+export async function POST(req: Request, ctx: { params: { type: string } }) {
+  return write(req, ctx.params.type, "add");
+}
+
+export async function DELETE(req: Request, ctx: { params: { type: string } }) {
+  return write(req, ctx.params.type, "delete");
 }
